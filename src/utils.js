@@ -26,6 +26,17 @@ export function cleanData(data) {
   });
 }
 
+export function transformData(data) {
+  return data.map(row => {
+    // return a formatted object to manipulate
+    return {
+      姓名: row.姓名,
+      捐贈企業數: row.捐贈企業數,
+      總收入: row.總收入
+    };
+  });
+}
+
 export function getDataDomain(data) {
   const {min, max} = data.reduce((acc, player) => {
     return player.gameData.reduce((mem, row) => {
