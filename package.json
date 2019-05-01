@@ -33,6 +33,7 @@
     "react": "^15.4.1",
     "react-addons-shallow-compare": "^15.4.1",
     "react-dom": "^15.4.1",
+    "react-select": "^2.4.3",
     "react-vis": "^1.9.3",
     "simplify-js": "^1.2.3",
     "tape": "^4.9.0"
