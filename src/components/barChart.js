@@ -1,6 +1,6 @@
 import React from 'react';
 import {csv} from 'd3-fetch';
-import {multiSelectData, barChartData} from '../utils';
+import {multiSelectData, barChartData, sourceData} from '../utils';
 import MultiSelect from 'react-select';
 import {
   XYPlot,
@@ -12,10 +12,26 @@ import {
 } from 'react-vis';
 
 let firstPersonData = [];
+let firstPersonSourceData = [];
 let secondPersonData = [];
+let secondPersonSourceData = [];
 
 let firstPersonBarData = [{x: '總收入(百萬)', y: 0}, {x: '捐贈企業數(家)', y: 0}];
 let secondPersonBarData = [{x: '總收入(百萬)', y: 0}, {x: '捐贈企業數(家)', y: 0}];
+
+let firstPersonSourceBarData = [{x: '個人捐贈收入', y: 0},
+                                                    {x: '營利事業捐贈收入', y: 0},
+                                                    {x: '政黨捐贈收入', y: 0},
+                                                    {x: '人民團體捐贈收入', y: 0},
+                                                    {x: '匿名捐贈收入', y: 0},
+                                                    {x: '其他收入', y: 0}];
+
+let secondPersonSourceBarData = [{x: '個人捐贈收入', y: 0},
+                                                         {x: '營利事業捐贈收入', y: 0},
+                                                         {x: '政黨捐贈收入', y: 0},
+                                                         {x: '人民團體捐贈收入', y: 0},
+                                                         {x: '匿名捐贈收入', y: 0},
+                                                         {x: '其他收入', y: 0}];
 
 const customStyles1 = {
   control: (base, state) => ({
@@ -75,6 +91,11 @@ const customStyles2 = {
   })
 };
 
+const divStyle = {
+  display: 'flex',
+  alignItems: 'center'
+};
+
 export default class RootComponent extends React.Component {
   state = {
     loading: true,
@@ -88,6 +109,7 @@ export default class RootComponent extends React.Component {
       .then(data => this.setState({
         multiSelectData: multiSelectData(data),
         barChartData: barChartData(data),
+        sourceData: sourceData(data),
         loading: false
       }));
   }
@@ -95,7 +117,10 @@ export default class RootComponent extends React.Component {
   handleChange = (selectedOption) => {
     this.setState({selectedOption});
     firstPersonData = this.state.barChartData.filter(person => person.姓名 === selectedOption.value);
+    firstPersonSourceData = this.state.sourceData.filter(person => person.姓名 === selectedOption.value);
     firstPersonBarData = [];
+    firstPersonSourceBarData = [];
+
     for (let [key, value] of Object.entries(firstPersonData[0])) {
       if (key !== '姓名') {
         if (key === '總收入') {
@@ -107,12 +132,22 @@ export default class RootComponent extends React.Component {
         firstPersonBarData.push({x: key, y: value});
       }
     }
+    for (let [key, value] of Object.entries(firstPersonSourceData[0])) {
+      if (key !== '姓名') {
+          value = value.replace(/\,/g,'');
+          value = Math.abs(Number(value)) / 1.0e+6;
+          firstPersonSourceBarData.push({x: key, y: value});
+      }
+    }
   }
 
   handleChange2 = (selectedOption2) => {
     this.setState({selectedOption2});
     secondPersonData = this.state.barChartData.filter(person => person.姓名 === selectedOption2.value);
+    secondPersonSourceData = this.state.sourceData.filter(person => person.姓名 === selectedOption2.value);
     secondPersonBarData = [];
+    secondPersonSourceBarData = [];
+
     for (let [key, value] of Object.entries(secondPersonData[0])) {
       if (key !== '姓名') {
         if (key === '總收入') {
@@ -122,6 +157,13 @@ export default class RootComponent extends React.Component {
           key = key + '(家)';
         }
         secondPersonBarData.push({x: key, y: value});
+      }
+    }
+    for (let [key, value] of Object.entries(secondPersonSourceData[0])) {
+      if (key !== '姓名') {
+          value = value.replace(/\,/g,'');
+          value = Math.abs(Number(value)) / 1.0e+6;
+          secondPersonSourceBarData.push({x: key, y: value});
       }
     }
   }
@@ -134,22 +176,23 @@ export default class RootComponent extends React.Component {
     }
 
     return (
-      <div>
-        <MultiSelect
-          value={selectedOption}
-          onChange={this.handleChange}
-          options={multiSelectData}
-          chartData={barChartData}
-          styles={customStyles1}
-        />
-        <MultiSelect
-          value={selectedOption2}
-          onChange={this.handleChange2}
-          options={multiSelectData}
-          chartData={barChartData}
-          styles={customStyles2}
-        />
-        <XYPlot xType="ordinal" width={500} height={500} xDistance={100}>
+      <div style={divStyle}>
+        <div>
+          <MultiSelect
+            value={selectedOption}
+            onChange={this.handleChange}
+            options={multiSelectData}
+            chartData={barChartData}
+            styles={customStyles1}
+          />
+          <MultiSelect
+            value={selectedOption2}
+            onChange={this.handleChange2}
+            options={multiSelectData}
+            chartData={barChartData}
+            styles={customStyles2}
+          />
+        <XYPlot xType="ordinal" width={500} height={600} xDistance={100}>
           <VerticalGridLines />
           <HorizontalGridLines />
           <XAxis />
@@ -157,6 +200,23 @@ export default class RootComponent extends React.Component {
           <BarSeries className="vertical-bar-series" data={firstPersonBarData} />
           <BarSeries data={secondPersonBarData} />
         </XYPlot>
+        </div>
+        <div>
+          <XYPlot xType="ordinal" width={600} height={350} xDistance={100}>
+            <VerticalGridLines />
+            <HorizontalGridLines />
+            <XAxis />
+            <YAxis />
+            <BarSeries data={firstPersonSourceBarData} />
+          </XYPlot>
+          <XYPlot xType="ordinal" width={600} height={350} xDistance={100}>
+            <VerticalGridLines />
+            <HorizontalGridLines />
+            <XAxis />
+            <YAxis />
+            <BarSeries color={'#79C7E3'} data={secondPersonSourceBarData} />
+          </XYPlot>
+        </div>
       </div>
     );
   }
